@@ -1,0 +1,161 @@
+use education
+go
+
+update [dbo].[Suppliers]
+set rating = rating +10
+where rating<20
+go
+
+
+
+
+Select [dbo].[Supplies].productid into [dbo].[NewLondonDetProd]
+FROM [dbo].[Supplies] join [dbo].[Details ] ON [dbo].[Supplies].[detailid]  = [dbo].[Details ].[detailid] 
+join [dbo].[Products] ON [dbo].[Supplies].[productid] = [dbo].[Products].[productid]
+where [dbo].[Products].city = 'London' or  [dbo].[Details].city = 'London' 
+group by [dbo].[Supplies].productid
+
+
+
+
+DELETE FROM [dbo].[Supplies]
+WHERE productid IN (SELECT [productid] FROM [dbo].[Supplies] join [dbo].[Suppliers] ON [dbo].[Supplies].[supplierid]  = [dbo].[Suppliers].[supplierid] 
+WHERE  productid IS NULL);
+
+
+
+select distinct  a.supplierid, a.detailid, b.detailid 
+FROM [dbo].[supplies] as a inner join [dbo].[supplies] as b on a.supplierid = b.supplierid where a.detailid < b.detailid
+
+use education
+go
+
+SELECT   supplierid,[dbo].[Supplies].[detailid],	productid, quantity, name, color, weight, city  into [dbo].[NewSupplies1]
+FROM [dbo].[details] INNER JOIN [dbo].[Supplies]
+ON [dbo].[Details].[detailid] = [dbo].[Supplies].[detailid]
+go
+
+
+update [dbo].[NewSupplies1]
+set quantity = quantity+ (quantity*0.10)
+where color = 'red'
+go
+
+
+
+
+
+use education
+    go
+
+SELECT   color, city  into [dbo].[NewDetails2]
+
+FROM [dbo].[NewSupplies1]
+
+
+WITH CTE AS(
+   SELECT [color], [city], 
+       RN = ROW_NUMBER()OVER(PARTITION BY (color) ORDER BY (color) )
+   FROM [dbo].[NewDetails2]
+)
+DELETE FROM CTE WHERE RN > 1
+go
+
+
+use education
+go
+
+
+Select detailid into [dbo].[NewSupplies4]
+FROM [dbo].[Supplies] join [dbo].[Suppliers] ON [dbo].[Supplies].[supplierid]  = [dbo].[Suppliers].[supplierid] 
+join [dbo].[Products] ON [dbo].[Supplies].[productid] = [dbo].[Products].[productid]
+where [dbo].[Products].city = 'London' or  [dbo].[Suppliers].city = 'London' 
+group by detailid
+
+
+
+use education
+go
+
+insert into [dbo].[Suppliers] 
+(supplierid,name,rating,city)
+values
+(10,'White',DEFAULT,'New York')
+Go
+
+
+
+DELETE FROM [dbo].[Supplies] 
+       FROM [dbo].[Products]
+Where [dbo].[Supplies].[productid]=[dbo].[Products].[productid]
+And city='Roma' 
+
+
+DELETE  FROM [dbo].[Products]
+Where city='Roma'
+
+
+
+use education
+go
+
+Select distinct [dbo].[Products].city into [dbo].[NewCity]
+FROM [dbo].[Supplies] join [dbo].[Suppliers] ON [dbo].[Supplies].[supplierid]  = [dbo].[Suppliers].[supplierid] 
+join [dbo].[Products] ON [dbo].[Supplies].[productid] = [dbo].[Products].[productid]
+
+
+
+
+update [dbo].[Details] 
+set  color  = 'yellow'
+where color ='red' and weight < 15
+go
+
+
+
+Select [productid], [city] into [dbo].[ProductNew]
+from [dbo].[Products]
+where city like '_O%'
+go
+
+
+
+Select supplierid,  SUM (quantity) New_quantity
+from [dbo].[supplies]
+GROUP by supplierid
+
+Select [dbo].[Suppliers].supplierid, name,rating,city, [quantity] into [dbo].[NewSuppliersRatingT]
+FROM [dbo].[Supplies] join [dbo].[Suppliers] ON [dbo].[Supplies].[supplierid]  = [dbo].[Suppliers].[supplierid] 
+
+update [dbo].[NewSuppliersRatingT]
+set rating = rating+10
+where New_quantity > (Select avg(New_quantity) from [dbo].[NewSuppliersRatingT])
+go
+
+
+
+Select [dbo].[Suppliers].supplierid, name,rating,city, [quantity] into [dbo].[PD1]
+FROM [dbo].[Supplies] join [dbo].[Suppliers] ON [dbo].[Supplies].[supplierid]  = [dbo].[Suppliers].[supplierid] 
+where productid = 1
+order by supplierid ASC
+go
+
+
+
+insert into [dbo].[Suppliers] values(6,'Petrenko',10,'Lviv'),(7,'Melnyk',15,'Kyiv')
+go
+
+
+
+
+
+MERGE [dbo].[Details]  AS D  
+USING tmp_Details AS S
+ON (D.detailid = S.detailid)              
+                                          
+when  matched then 
+UPDATE SET D.Name = S.NAME, D.Color = S.Color, D.Weight = S.Weight,D.City = S.City
+							  
+WHEN NOT MATCHED THEN  
+INSERT (detailid, name, color, weight, city)  
+VALUES (s.detailid, s.name, s.color, s.weight, s.city);
